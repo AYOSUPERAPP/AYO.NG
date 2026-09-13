@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '../../../../lib/supabase';
+import { verifySupabaseToken } from '../../../../lib/auth';
+import { insertPlatformEarning } from '../../../../lib/supabase-helpers';
 
-// POST /api/earnings
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -13,20 +13,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from('platform_earnings')
-      .insert([{ type, amount, meta }])
-      .select('*')
-      .limit(1);
-
-    if (error) {
-      console.error('Supabase insert error (earnings):', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // verify token if present to ensure only authenticated callers
+    // Authorization header is expected by middleware; double-check here for safety
+    const authHeader = (req as any).headers?.get ? (req as any).headers.get('authorization') : null;
+    let user = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace(/^Bearer\s+/, '');
+      user = await verifySupabaseToken(token);
     }
 
-    return NextResponse.json({ success: true, record: data?.[0] });
-  } catch (err) {
+    // insert platform earning via server helper (uses service role key)
+    const record = await insertPlatformEarning(type, amount, { ...meta, user: user?.id ?? null });
+
+    return NextResponse.json({ success: true, record });
+  } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
   }
 }
