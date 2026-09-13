@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifySupabaseToken } from '@/lib/auth'
-import { serverSupabase } from '@/lib/supabase-helpers'
+import { verifySupabaseToken } from '../../../lib/auth'
+import { serverSupabase } from '../../../lib/supabase-helpers'
 
 export async function GET(req: NextRequest) {
   try {
