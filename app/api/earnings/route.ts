@@ -1,33 +1,36 @@
-import { NextResponse } from 'next/server';
-import { verifySupabaseToken } from '@/lib/auth';
-import { insertPlatformEarning } from '@/lib/supabase-helpers';
+import { NextRequest, NextResponse } from 'next/server'
+import { verifySupabaseToken } from '@/lib/auth'
+import { serverSupabase } from '@/lib/supabase-helpers'
 
-export async function POST(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
-    const type = body.type || 'unknown';
-    const amount = Number(body.amount) || 0;
-    const meta = body.meta || {};
-
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    const authHeader = req.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '') || null
+    
+    const user = await verifySupabaseToken(token)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // verify token if present to ensure only authenticated callers
-    // Authorization header is expected by middleware; double-check here for safety
-    const authHeader = (req as any).headers?.get ? (req as any).headers.get('authorization') : null;
-    let user = null;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace(/^Bearer\s+/, '');
-      user = await verifySupabaseToken(token);
-    }
+    // Get user earnings from transactions
+    const { data, error } = await serverSupabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
 
-    // insert platform earning via server helper (uses service role key)
-    const record = await insertPlatformEarning(type, amount, { ...meta, user: user?.id ?? null });
+    if (error) throw error
 
-    return NextResponse.json({ success: true, record });
+    const totalEarnings = data?.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0
+
+    return NextResponse.json({ 
+      earnings: data,
+      total: totalEarnings,
+      user_id: user.id 
+    })
+
   } catch (err: any) {
-    console.error(err);
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    console.error('earnings error', err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
