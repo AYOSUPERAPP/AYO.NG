@@ -1,48 +1,49 @@
-/* app/layout.tsx */
-"use client";
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 
-import "../globals.css";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+const inter = Inter({ subsets: ['latin'] })
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() || "/";
+export const metadata: Metadata = {
+  title: 'AYO.NG - Nigeria Made | Play, Chat, Earn',
+  description: 'Nigeria No.1 Super App - Games, Chat, Earn, Cashout with Paystack - Naija Made',
+  manifest: '/manifest.json',
+}
 
-  const navItems = [
-    { href: "/feed", label: "WATCH" },
-    { href: "/live12", label: "LIVE12" },
-    { href: "/wallet", label: "WALLET" },
-  ];
-
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className="bg-black text-white min-h-screen flex flex-col items-center">
-        <div className="w-full max-w-[430px] min-h-screen flex flex-col">
-          <main className="flex-1">{children}</main>
-        </div>
-
-        <nav className="fixed bottom-0 left-0 right-0 flex justify-center pointer-events-auto">
-          <div className="w-full max-w-[430px] bg-black border-t border-neutral-800">
-            <div className="flex justify-between items-center px-4 py-2">
-              {navItems.map((item) => {
-                const active = pathname === item.href || (item.href === "/live12" && pathname === "/");
-                return (
-                  <Link key={item.href} href={item.href} className="flex-1">
-                    <button
-                      className={`w-full py-2 text-sm font-semibold rounded-md transition-colors duration-150 ${
-                        active ? "text-yellow-400" : "text-neutral-300"
-                      }`}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {item.label}
-                    </button>
-                  </Link>
-                );
-              })}
+      <body className={`${inter.className} bg-black text-white antialiased`}>
+        {/* Nigeria Made Header */}
+        <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-green-600/20">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-white rounded-lg flex items-center justify-center font-black text-black">
+                A
+              </div>
+              <span className="font-black text-xl tracking-tight">
+                AYO<span className="text-green-500">.NG</span>
+              </span>
+              <span className="text- bg-green-500 text-black px-2 py-0.5 rounded-full font-bold ml-2">
+                NIGERIA MADE
+              </span>
             </div>
+            <div className="text-xs text-gray-400">🇳🇬 Naija to the World</div>
           </div>
-        </nav>
+        </header>
+
+        <main className="min-h-screen">
+          {children}
+        </main>
+
+        <footer className="border-t border-white/10 py-6 text-center text-xs text-gray-500">
+          © 2026 AYO.NG - Built in Lagos • Play • Chat • Earn
+        </footer>
       </body>
     </html>
-  );
+  )
 }
