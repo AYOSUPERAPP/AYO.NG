@@ -1,4 +1,8 @@
-import { NextResponse } from 'next/server'
-export async function POST() {
-  return NextResponse.json({ success: true, message: 'Cashout coming soon - AYO.NG LIVE!' })
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
 }
