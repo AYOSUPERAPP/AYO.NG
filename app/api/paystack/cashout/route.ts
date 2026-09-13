@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { verifySupabaseToken } from '../../../../lib/auth';
-import { insertPlatformEarning, insertTransaction, serverSupabase } from '../../../../lib/supabase-helpers';
+import { verifySupabaseToken } from '@/lib/auth';
+import { insertPlatformEarning, insertTransaction, serverSupabase } from '@/lib/supabase-helpers';
 
 export async function POST(req: Request) {
   try {
